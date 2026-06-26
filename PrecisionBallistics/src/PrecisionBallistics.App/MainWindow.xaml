@@ -1,0 +1,323 @@
+<Window x:Class="PrecisionBallistics.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:PrecisionBallistics.App"
+        Title="Precision Ballistics — ბალისტიკური კალკულატორი"
+        Height="820" Width="1280"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid Margin="6">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ===== Top bar ===== -->
+        <Border Grid.Row="0" Style="{StaticResource Card}" Margin="6,6,6,3">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="PRECISION BALLISTICS" FontSize="16" FontWeight="Bold"
+                                   Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="point-mass solver · G1/G7/CDM · spin drift · Coriolis"
+                                   Foreground="{StaticResource MutedBrush}" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <CheckBox Content="MOA" IsChecked="{Binding UseMoa}" Margin="6,0" VerticalAlignment="Center"/>
+                        <CheckBox Content="Metric" IsChecked="{Binding UseMetric}" Margin="6,0" VerticalAlignment="Center"/>
+                        <CheckBox Content="MV m/s" IsChecked="{Binding UseMvMetric}" Margin="6,0" VerticalAlignment="Center"/>
+                        <Button Content="SOLVE" Command="{Binding SolveCommand}" Style="{StaticResource AccentButton}"
+                                Width="110" Margin="10,0,0,0"/>
+                    </StackPanel>
+                </Grid>
+                <WrapPanel Margin="0,8,0,0">
+                    <Button Content="True MV" Click="OnTrueMv" Width="80" Margin="0,0,6,0"/>
+                    <Button Content="Range card" Click="OnRangeCard" Width="90" Margin="0,0,6,0"/>
+                    <Button Content="Compare" Click="OnCompare" Width="80" Margin="0,0,6,0"/>
+                    <Button Content="Graph" Click="OnGraph" Width="70" Margin="0,0,6,0"/>
+                    <Button Content="Drag curve" Click="OnDragCurve" Width="90" Margin="0,0,6,0"/>
+                    <Button Content="Export DOPE CSV" Click="OnExportCsv" Width="130" Margin="0,0,6,0"/>
+                    <Button Content="Import profile" Click="OnImportProfile" Width="105" Margin="0,0,6,0"/>
+                    <Button Content="Export profile" Click="OnExportProfile" Width="105" Margin="0,0,6,0"/>
+                    <Button Content="Save lib" Command="{Binding SaveCommand}" Width="75" Margin="0,0,6,0"/>
+                    <Button Content="Load lib" Command="{Binding LoadCommand}" Width="75" Margin="0,0,6,0"/>
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- ===== Main area ===== -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="320"/>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Column 1: Profile / Rifle / Cartridge / Scope -->
+            <Border Grid.Column="0" Style="{StaticResource Card}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="PROFILE" Style="{StaticResource SectionHeader}"/>
+                        <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}"
+                                  DisplayMemberPath="Name"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <Button Content="New / Clone" Command="{Binding NewProfileCommand}" Width="120"/>
+                            <Button Content="Delete" Command="{Binding DeleteProfileCommand}" Width="80" Margin="6,0,0,0"/>
+                        </StackPanel>
+                        <TextBlock Text="Profile name" Style="{StaticResource FieldLabel}" Margin="0,6,0,0"/>
+                        <TextBox Text="{Binding SelectedProfile.Name, UpdateSourceTrigger=LostFocus}"/>
+
+                        <TextBlock Text="RIFLE" Style="{StaticResource SectionHeader}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Twist (1: in)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Twist dir" Style="{StaticResource FieldLabel}"/>
+                            <TextBox  Grid.Row="1" Grid.Column="0" Margin="0,0,4,0"
+                                      Text="{Binding SelectedProfile.Rifle.TwistRateIn, UpdateSourceTrigger=LostFocus}"/>
+                            <ComboBox Grid.Row="1" Grid.Column="1" Margin="4,2,0,2"
+                                      ItemsSource="{Binding TwistDirections}"
+                                      SelectedItem="{Binding SelectedProfile.Rifle.TwistDirection}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Sight height (in)" Style="{StaticResource FieldLabel}"/>
+                            <TextBox  Grid.Row="3" Grid.Column="0" Margin="0,0,4,0"
+                                      Text="{Binding SelectedProfile.Rifle.SightHeightIn, UpdateSourceTrigger=LostFocus}"/>
+                        </Grid>
+
+                        <TextBlock Text="CARTRIDGE / LOAD" Style="{StaticResource SectionHeader}"/>
+                        <TextBlock Text="Load name" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding SelectedProfile.Cartridge.Name, UpdateSourceTrigger=LostFocus}"/>
+                        <Grid Margin="0,2,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Diameter (in)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Weight (gr)" Style="{StaticResource FieldLabel}"/>
+                            <TextBox  Grid.Row="1" Grid.Column="0" Margin="0,0,4,0"
+                                      Text="{Binding SelectedProfile.Cartridge.DiameterIn, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBox  Grid.Row="1" Grid.Column="1" Margin="4,0,0,0"
+                                      Text="{Binding SelectedProfile.Cartridge.WeightGr, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Length (in)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding MvUnitLabel, StringFormat='Muzzle vel ({0})'}" Style="{StaticResource FieldLabel}"/>
+                            <TextBox  Grid.Row="3" Grid.Column="0" Margin="0,0,4,0"
+                                      Text="{Binding SelectedProfile.Cartridge.LengthIn, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBox  Grid.Row="3" Grid.Column="1" Margin="4,0,0,0"
+                                      Text="{Binding MuzzleVelocityDisplay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="BC value" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="Drag model" Style="{StaticResource FieldLabel}"/>
+                            <TextBox  Grid.Row="5" Grid.Column="0" Margin="0,0,4,0"
+                                      Text="{Binding SelectedProfile.Cartridge.BallisticCoefficient, UpdateSourceTrigger=LostFocus}"/>
+                            <ComboBox Grid.Row="5" Grid.Column="1" Margin="4,2,0,2"
+                                      ItemsSource="{Binding DragModels}"
+                                      SelectedItem="{Binding SelectedProfile.Cartridge.DragModel}"/>
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="MV temp sens (fps/°C)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Grid.Row="6" Grid.Column="1" Text="MV ref temp (°C)" Style="{StaticResource FieldLabel}"/>
+                            <TextBox  Grid.Row="7" Grid.Column="0" Margin="0,0,4,0"
+                                      Text="{Binding SelectedProfile.Cartridge.MvTempSensitivityFpsPerC, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBox  Grid.Row="7" Grid.Column="1" Margin="4,0,0,0"
+                                      Text="{Binding SelectedProfile.Cartridge.MvReferenceTempC, UpdateSourceTrigger=LostFocus}"/>
+                        </Grid>
+
+                        <TextBlock Text="OPTIC / ZERO" Style="{StaticResource SectionHeader}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Click value" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Click unit" Style="{StaticResource FieldLabel}"/>
+                            <TextBox  Grid.Row="1" Grid.Column="0" Margin="0,0,4,0"
+                                      Text="{Binding SelectedProfile.Scope.ClickValue, UpdateSourceTrigger=LostFocus}"/>
+                            <ComboBox Grid.Row="1" Grid.Column="1" Margin="4,2,0,2"
+                                      ItemsSource="{Binding AngularUnits}"
+                                      SelectedItem="{Binding SelectedProfile.Scope.Unit}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Rail cant (MOA)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="Zero range" Style="{StaticResource FieldLabel}"/>
+                            <TextBox  Grid.Row="3" Grid.Column="0" Margin="0,0,4,0"
+                                      Text="{Binding SelectedProfile.Scope.BaseMountMoa, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBox  Grid.Row="3" Grid.Column="1" Margin="4,0,0,0"
+                                      Text="{Binding ZeroRangeDisplay, UpdateSourceTrigger=LostFocus}"/>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Column 2: Conditions -->
+            <Border Grid.Column="1" Style="{StaticResource Card}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="ATMOSPHERE" Style="{StaticResource SectionHeader}"/>
+                        <ComboBox ItemsSource="{Binding EnvironmentPresets}"
+                                  SelectedItem="{Binding SelectedEnvironmentPreset}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Temperature (°C)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding Conditions.Atmosphere.TemperatureC, UpdateSourceTrigger=LostFocus}"/>
+                        <TextBlock Text="Pressure (inHg)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding Conditions.Atmosphere.PressureInHg, UpdateSourceTrigger=LostFocus}"/>
+                        <TextBlock Text="Humidity (%)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding Conditions.Atmosphere.HumidityPct, UpdateSourceTrigger=LostFocus}"/>
+                        <CheckBox Content="Pressure is sea-level (correct by altitude)"
+                                  IsChecked="{Binding Conditions.Atmosphere.PressureIsSeaLevel}"/>
+                        <TextBlock Text="Altitude (m)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding Conditions.Atmosphere.AltitudeM, UpdateSourceTrigger=LostFocus}"/>
+
+                        <TextBlock Text="WIND" Style="{StaticResource SectionHeader}"/>
+                        <TextBlock Text="{Binding WindUnitLabel, StringFormat='Speed ({0})'}" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding WindSpeedDisplay, UpdateSourceTrigger=LostFocus, StringFormat=N1}"/>
+                        <TextBlock Text="Direction from (deg: 0=head, 90=L→R, 180=tail)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding Conditions.WindFromDeg, UpdateSourceTrigger=LostFocus}"/>
+
+                        <CheckBox Content="Wind bracket (show lo–hi hold)" IsChecked="{Binding WindBracket}" Margin="0,8,0,2"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                                <TextBlock Text="{Binding WindUnitLabel, StringFormat='min ({0})'}" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="{Binding WindMinDisplay, UpdateSourceTrigger=LostFocus, StringFormat=N1}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="4,0,0,0">
+                                <TextBlock Text="{Binding WindUnitLabel, StringFormat='max ({0})'}" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="{Binding WindMaxDisplay, UpdateSourceTrigger=LostFocus, StringFormat=N1}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="GEOMETRY" Style="{StaticResource SectionHeader}"/>
+                        <TextBlock Text="Look angle (deg, + up / - down)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding Conditions.LookAngleDeg, UpdateSourceTrigger=LostFocus}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Max range" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Step" Style="{StaticResource FieldLabel}"/>
+                            <TextBox  Grid.Row="1" Grid.Column="0" Margin="0,0,4,0"
+                                      Text="{Binding MaxRangeDisplay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBox  Grid.Row="1" Grid.Column="1" Margin="4,0,0,0"
+                                      Text="{Binding RangeStepDisplay, UpdateSourceTrigger=LostFocus}"/>
+                        </Grid>
+
+                        <TextBlock Text="EFFECTS" Style="{StaticResource SectionHeader}"/>
+                        <CheckBox Content="Spin drift (Litz)" IsChecked="{Binding Conditions.ApplySpinDrift}"/>
+                        <CheckBox Content="Aerodynamic jump" IsChecked="{Binding Conditions.ApplyAeroJump}"/>
+                        <CheckBox Content="Coriolis" IsChecked="{Binding Conditions.ApplyCoriolis}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Latitude (deg)" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Azimuth (deg)" Style="{StaticResource FieldLabel}"/>
+                            <TextBox  Grid.Row="1" Grid.Column="0" Margin="0,0,4,0"
+                                      Text="{Binding Conditions.LatitudeDeg, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBox  Grid.Row="1" Grid.Column="1" Margin="4,0,0,0"
+                                      Text="{Binding Conditions.AzimuthDeg, UpdateSourceTrigger=LostFocus}"/>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Column 3: Results + reticle -->
+            <Border Grid.Column="2" Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="300"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Stats strip -->
+                    <WrapPanel Grid.Row="0" Margin="0,0,0,6">
+                        <StackPanel Margin="0,0,18,4">
+                            <TextBlock Text="ZERO ANGLE" Foreground="{StaticResource MutedBrush}" FontSize="10"/>
+                            <TextBlock Text="{Binding ZeroAngleText}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,18,4">
+                            <TextBlock Text="DENSITY ALT" Foreground="{StaticResource MutedBrush}" FontSize="10"/>
+                            <TextBlock Text="{Binding DensityAltitudeText}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,18,4">
+                            <TextBlock Text="AIR DENSITY" Foreground="{StaticResource MutedBrush}" FontSize="10"/>
+                            <TextBlock Text="{Binding AirDensityText}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,18,4">
+                            <TextBlock Text="STABILITY" Foreground="{StaticResource MutedBrush}" FontSize="10"/>
+                            <TextBlock Text="{Binding StabilityText}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,18,4">
+                            <TextBlock Text="EFFECTIVE MV" Foreground="{StaticResource MutedBrush}" FontSize="10"/>
+                            <TextBlock Text="{Binding MuzzleVelocityText}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,18,4">
+                            <TextBlock Text="TRANSONIC" Foreground="{StaticResource MutedBrush}" FontSize="10"/>
+                            <TextBlock Text="{Binding TransonicText}" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
+                        </StackPanel>
+                    </WrapPanel>
+
+                    <!-- Trajectory table -->
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding Rows}" AutoGenerateColumns="False"
+                              IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                              Background="{StaticResource PanelBrush}" Foreground="{StaticResource TextBrush}"
+                              RowBackground="{StaticResource PanelBrush}" AlternatingRowBackground="{StaticResource PanelAltBrush}"
+                              BorderBrush="{StaticResource BorderBrush}" CanUserAddRows="False"
+                              HorizontalGridLinesBrush="{StaticResource BorderBrush}" FontFamily="Consolas">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Range" Binding="{Binding Range}" Width="70"/>
+                            <DataGridTextColumn Header="Elev" Binding="{Binding Elevation}" Width="70"/>
+                            <DataGridTextColumn Header="Wind" Binding="{Binding Windage}" Width="70"/>
+                            <DataGridTextColumn Header="Drop" Binding="{Binding Drop}" Width="90"/>
+                            <DataGridTextColumn Header="Velocity" Binding="{Binding Velocity}" Width="90"/>
+                            <DataGridTextColumn Header="Energy" Binding="{Binding Energy}" Width="90"/>
+                            <DataGridTextColumn Header="Mach" Binding="{Binding Mach}" Width="60"/>
+                            <DataGridTextColumn Header="ToF" Binding="{Binding Tof}" Width="60"/>
+                        </DataGrid.Columns>
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Supersonic}" Value="False">
+                                        <Setter Property="Foreground" Value="{StaticResource WarnBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+                    </DataGrid>
+
+                    <!-- Reticle -->
+                    <Border Grid.Row="2" Margin="0,6,0,0" BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1" CornerRadius="4">
+                        <local:ReticleView x:Name="Reticle"/>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

@@ -1,0 +1,46 @@
+<Window x:Class="PrecisionBallistics.App.RangeCardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Range card / DOPE — ბარათი"
+        Height="620" Width="560"
+        WindowStartupLocation="CenterOwner">
+    <Border Style="{StaticResource Card}" Margin="8">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="RANGE CARD GENERATOR" Style="{StaticResource SectionHeader}"/>
+            <StackPanel Grid.Row="1">
+                <TextBlock x:Name="DistLabel" Style="{StaticResource FieldLabel}"/>
+                <TextBox x:Name="DistBox"/>
+                <TextBlock Text="(მძიმით გამოყავი, მაგ: 100, 200, 300, 450, 600, 800)"
+                           Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,2,0,0"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10">
+                <Button Content="Generate" Click="OnGenerate" Style="{StaticResource AccentButton}" Width="120"/>
+                <Button Content="Export CSV" Click="OnExportCsv" Width="110" Margin="8,0,0,0"/>
+                <Button Content="Print" Click="OnPrint" Width="90" Margin="8,0,0,0"/>
+            </StackPanel>
+
+            <DataGrid Grid.Row="3" x:Name="ResultGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                      HeadersVisibility="Column" GridLinesVisibility="Horizontal" CanUserAddRows="False"
+                      Background="{StaticResource PanelBrush}" Foreground="{StaticResource TextBrush}"
+                      RowBackground="{StaticResource PanelBrush}" AlternatingRowBackground="{StaticResource PanelAltBrush}"
+                      BorderBrush="{StaticResource BorderBrush}"
+                      HorizontalGridLinesBrush="{StaticResource BorderBrush}" FontFamily="Consolas">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Range" Binding="{Binding Range}" Width="80"/>
+                    <DataGridTextColumn Header="Elev" Binding="{Binding Elev}" Width="80"/>
+                    <DataGridTextColumn Header="Wind" Binding="{Binding Wind}" Width="80"/>
+                    <DataGridTextColumn Header="Drop" Binding="{Binding Drop}" Width="100"/>
+                    <DataGridTextColumn Header="Velocity" Binding="{Binding Vel}" Width="100"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </Border>
+</Window>

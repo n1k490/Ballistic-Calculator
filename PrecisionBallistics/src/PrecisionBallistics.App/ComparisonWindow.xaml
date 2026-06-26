@@ -1,0 +1,50 @@
+<Window x:Class="PrecisionBallistics.App.ComparisonWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Compare loads — ლოუდების შედარება"
+        Height="600" Width="720"
+        WindowStartupLocation="CenterOwner">
+    <Border Style="{StaticResource Card}" Margin="8">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                    <TextBlock Text="LOAD A" Style="{StaticResource SectionHeader}"/>
+                    <ComboBox x:Name="ComboA" DisplayMemberPath="Name"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                    <TextBlock Text="LOAD B" Style="{StaticResource SectionHeader}"/>
+                    <ComboBox x:Name="ComboB" DisplayMemberPath="Name"/>
+                </StackPanel>
+            </Grid>
+
+            <Button Grid.Row="1" Content="Compare" Click="OnCompare" Style="{StaticResource AccentButton}"
+                    Width="140" HorizontalAlignment="Left" Margin="0,10"/>
+
+            <DataGrid Grid.Row="2" x:Name="ResultGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                      HeadersVisibility="Column" GridLinesVisibility="Horizontal" CanUserAddRows="False"
+                      Background="{StaticResource PanelBrush}" Foreground="{StaticResource TextBrush}"
+                      RowBackground="{StaticResource PanelBrush}" AlternatingRowBackground="{StaticResource PanelAltBrush}"
+                      BorderBrush="{StaticResource BorderBrush}"
+                      HorizontalGridLinesBrush="{StaticResource BorderBrush}" FontFamily="Consolas">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Range" Binding="{Binding Range}" Width="80"/>
+                    <DataGridTextColumn Header="A elev" Binding="{Binding ElevA}" Width="80"/>
+                    <DataGridTextColumn Header="B elev" Binding="{Binding ElevB}" Width="80"/>
+                    <DataGridTextColumn Header="Δ elev" Binding="{Binding ElevDelta}" Width="80"/>
+                    <DataGridTextColumn Header="A vel" Binding="{Binding VelA}" Width="90"/>
+                    <DataGridTextColumn Header="B vel" Binding="{Binding VelB}" Width="90"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </Border>
+</Window>
